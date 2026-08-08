@@ -1,4 +1,4 @@
-package dev.y.works.iconescatolicosonline.config;
+package dev.y.works.iconescatolicosonline.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
