@@ -1,0 +1,15 @@
+package dev.y.works.iconescatolicosonline.domain.encomenda;
+
+public enum StatusEncomenda {
+    ENCOMENDA_CRIADA,
+    AGUARDANDO_PAGAMENTO_SINAL,
+    SINAL_PAGO,
+    PRODUCAO_LIBERADA,
+    EM_PRODUCAO,
+    EM_ACABAMENTO,
+    PRONTO_PARA_ENTREGA_RETIRADA,
+    AGUARDANDO_PAGAMENTO_RESTANTE,
+    ENVIADO_OU_RETIRADO,
+    CONCLUIDO,
+    CANCELADO
+}
