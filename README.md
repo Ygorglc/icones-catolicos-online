@@ -56,3 +56,21 @@ docker compose down
 
 O suporte do Spring Boot ao Docker Compose inicia o serviço automaticamente
 durante o desenvolvimento quando o Docker Desktop está disponível.
+
+## Perfis de configuração
+
+O perfil `dev` é usado por padrão. Ele conecta ao PostgreSQL local e permite ao
+Spring Boot controlar o `compose.yaml`.
+
+O perfil `prod` não inicia Docker e exige as variáveis `DB_URL`, `DB_USERNAME`
+e `DB_PASSWORD`. Para ativá-lo:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE="prod"
+$env:DB_URL="jdbc:postgresql://servidor:5432/icones_catolicos"
+$env:DB_USERNAME="usuario"
+$env:DB_PASSWORD="senha"
+.\gradlew.bat bootRun
+```
+
+Não versione senhas reais ou arquivos `.env`.
