@@ -1,0 +1,8 @@
+package dev.y.works.iconescatolicosonline.exception;
+
+public class ConflitoException extends RuntimeException {
+
+    public ConflitoException(String mensagem) {
+        super(mensagem);
+    }
+}
