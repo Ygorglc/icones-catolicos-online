@@ -90,6 +90,7 @@ class RepositoriesIntegrationTests {
         assertThat(clienteRepository.findByCpf("999.999.999-99")).isEmpty();
         assertThat(administradorRepository.findByUsuario_Id(ID_INEXISTENTE)).isEmpty();
         assertThat(modeloIconeRepository.findByAtivoTrueOrderByNomeAsc()).isNotNull();
+        assertThat(modeloIconeRepository.findByIdAndAtivoTrue(ID_INEXISTENTE)).isEmpty();
         assertThat(modeloIconeRepository.existsByNomeIgnoreCase("Modelo inexistente")).isFalse();
         assertThat(conteudoDevocionalRepository.findByModeloIcone_Id(ID_INEXISTENTE)).isEmpty();
     }
