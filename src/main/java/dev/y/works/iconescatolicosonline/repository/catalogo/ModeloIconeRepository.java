@@ -13,4 +13,6 @@ public interface ModeloIconeRepository extends JpaRepository<ModeloIcone, Long> 
     Optional<ModeloIcone> findByIdAndAtivoTrue(Long id);
 
     boolean existsByNomeIgnoreCase(String nome);
+
+    boolean existsByNomeIgnoreCaseAndIdNot(String nome, Long id);
 }

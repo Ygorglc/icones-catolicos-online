@@ -3,7 +3,9 @@ package dev.y.works.iconescatolicosonline.service.catalogo;
 import dev.y.works.iconescatolicosonline.domain.catalogo.ConteudoDevocional;
 import dev.y.works.iconescatolicosonline.domain.catalogo.ModeloIcone;
 import dev.y.works.iconescatolicosonline.dto.catalogo.ModeloIconeDetalheResponse;
+import dev.y.works.iconescatolicosonline.dto.catalogo.ModeloIconeRequest;
 import dev.y.works.iconescatolicosonline.dto.catalogo.ModeloIconeResumoResponse;
+import dev.y.works.iconescatolicosonline.exception.ConflitoException;
 import dev.y.works.iconescatolicosonline.exception.RecursoNaoEncontradoException;
 import dev.y.works.iconescatolicosonline.repository.catalogo.ModeloIconeRepository;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class ModeloIconeServiceTests {
@@ -72,6 +75,48 @@ class ModeloIconeServiceTests {
         assertThatThrownBy(() -> modeloIconeService.buscarModeloAtivo(99L))
                 .isInstanceOf(RecursoNaoEncontradoException.class)
                 .hasMessage("Modelo de ícone não encontrado.");
+    }
+
+    @Test
+    void deveCriarModeloAtivoPorPadrao() {
+        ModeloIconeRequest request = new ModeloIconeRequest(
+                "  São Bento  ", "Ícone em madeira", null,
+                new BigDecimal("250.00"), null, null);
+        when(modeloIconeRepository.existsByNomeIgnoreCase("São Bento")).thenReturn(false);
+        when(modeloIconeRepository.save(any(ModeloIcone.class))).thenAnswer(invocation -> {
+            ModeloIcone salvo = invocation.getArgument(0);
+            salvo.setId(2L);
+            return salvo;
+        });
+
+        ModeloIconeDetalheResponse resultado = modeloIconeService.criar(request);
+
+        assertThat(resultado.id()).isEqualTo(2L);
+        assertThat(resultado.nome()).isEqualTo("São Bento");
+        assertThat(resultado.ativo()).isTrue();
+    }
+
+    @Test
+    void deveImpedirNomeDuplicadoAoCriar() {
+        ModeloIconeRequest request = new ModeloIconeRequest(
+                "São Bento", "Ícone em madeira", null,
+                new BigDecimal("250.00"), true, null);
+        when(modeloIconeRepository.existsByNomeIgnoreCase("São Bento")).thenReturn(true);
+
+        assertThatThrownBy(() -> modeloIconeService.criar(request))
+                .isInstanceOf(ConflitoException.class)
+                .hasMessage("Já existe um modelo de ícone com esse nome.");
+    }
+
+    @Test
+    void deveDesativarModeloSemExcluiLo() {
+        ModeloIcone modelo = criarModelo();
+        when(modeloIconeRepository.findById(1L)).thenReturn(Optional.of(modelo));
+
+        modeloIconeService.desativar(1L);
+
+        assertThat(modelo.isAtivo()).isFalse();
+        verify(modeloIconeRepository).save(modelo);
     }
 
     private ModeloIcone criarModelo() {
