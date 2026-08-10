@@ -1,5 +1,6 @@
 package dev.y.works.iconescatolicosonline.repository;
 
+import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import dev.y.works.iconescatolicosonline.domain.encomenda.StatusEncomenda;
 import dev.y.works.iconescatolicosonline.domain.encomenda.StatusFinanceiro;
 import dev.y.works.iconescatolicosonline.domain.estoque.StatusIconePronto;
@@ -114,9 +115,9 @@ class RepositoriesIntegrationTests {
         assertThat(iconeProntoRepository.findByStatusOrderByIdAsc(
                 StatusIconePronto.DISPONIVEL)).isNotNull();
         assertThat(iconeProntoRepository
-                .findFirstByModeloIcone_IdAndTamanhoIgnoreCaseAndAcabamentoIgnoreCaseAndStatus(
+                .findFirstByModeloIcone_IdAndTamanhoAndAcabamentoIgnoreCaseAndStatus(
                         ID_INEXISTENTE,
-                        "inexistente",
+                        TamanhoIcone.PERSONALIZADO,
                         "inexistente",
                         StatusIconePronto.DISPONIVEL
                 )).isEmpty();

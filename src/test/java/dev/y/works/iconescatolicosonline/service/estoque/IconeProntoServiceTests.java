@@ -1,6 +1,7 @@
 package dev.y.works.iconescatolicosonline.service.estoque;
 
 import dev.y.works.iconescatolicosonline.domain.catalogo.ModeloIcone;
+import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import dev.y.works.iconescatolicosonline.domain.encomenda.Encomenda;
 import dev.y.works.iconescatolicosonline.domain.encomenda.ItemEncomenda;
 import dev.y.works.iconescatolicosonline.domain.encomenda.Personalizacao;
@@ -52,7 +53,7 @@ class IconeProntoServiceTests {
         });
 
         IconeProntoResponse resposta = service.criar(new IconeProntoRequest(
-                10L, "30x40", "Envernizado", new BigDecimal("120.00"),
+                10L, TamanhoIcone.MEDIO, "Envernizado", new BigDecimal("120.00"),
                 new BigDecimal("250.00"), StatusIconePronto.DISPONIVEL, "Prateleira A"));
 
         assertThat(resposta.id()).isEqualTo(20L);
@@ -62,7 +63,7 @@ class IconeProntoServiceTests {
     @Test
     void deveImpedirCriacaoDiretamenteComoReservada() {
         assertThatThrownBy(() -> service.criar(new IconeProntoRequest(
-                10L, "30x40", "Envernizado", new BigDecimal("120.00"),
+                10L, TamanhoIcone.MEDIO, "Envernizado", new BigDecimal("120.00"),
                 null, StatusIconePronto.RESERVADO, null)))
                 .isInstanceOf(RegraNegocioException.class);
     }
@@ -73,8 +74,8 @@ class IconeProntoServiceTests {
         Encomenda encomenda = criarEncomenda(modelo);
         IconePronto icone = criarIcone(modelo);
         when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
-        when(iconeProntoRepository.findFirstByModeloIcone_IdAndTamanhoIgnoreCaseAndAcabamentoIgnoreCaseAndStatus(
-                10L, "30x40", "Envernizado", StatusIconePronto.DISPONIVEL))
+        when(iconeProntoRepository.findFirstByModeloIcone_IdAndTamanhoAndAcabamentoIgnoreCaseAndStatus(
+                10L, TamanhoIcone.MEDIO, "Envernizado", StatusIconePronto.DISPONIVEL))
                 .thenReturn(Optional.of(icone));
         when(iconeProntoRepository.save(icone)).thenReturn(icone);
 
@@ -116,8 +117,8 @@ class IconeProntoServiceTests {
         ModeloIcone modelo = criarModelo();
         Encomenda encomenda = criarEncomenda(modelo);
         when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
-        when(iconeProntoRepository.findFirstByModeloIcone_IdAndTamanhoIgnoreCaseAndAcabamentoIgnoreCaseAndStatus(
-                10L, "30x40", "Envernizado", StatusIconePronto.DISPONIVEL))
+        when(iconeProntoRepository.findFirstByModeloIcone_IdAndTamanhoAndAcabamentoIgnoreCaseAndStatus(
+                10L, TamanhoIcone.MEDIO, "Envernizado", StatusIconePronto.DISPONIVEL))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.reservarCompativel(1L))
@@ -141,7 +142,7 @@ class IconeProntoServiceTests {
         item.setEncomenda(encomenda);
         Personalizacao personalizacao = new Personalizacao();
         personalizacao.setItemEncomenda(item);
-        personalizacao.setTamanho("30x40");
+        personalizacao.setTamanho(TamanhoIcone.MEDIO);
         personalizacao.setAcabamento("Envernizado");
         item.setPersonalizacao(personalizacao);
         encomenda.getItens().add(item);
@@ -152,7 +153,7 @@ class IconeProntoServiceTests {
         IconePronto icone = new IconePronto();
         icone.setId(20L);
         icone.setModeloIcone(modelo);
-        icone.setTamanho("30x40");
+        icone.setTamanho(TamanhoIcone.MEDIO);
         icone.setAcabamento("Envernizado");
         icone.setCustoProducao(new BigDecimal("120.00"));
         icone.setStatus(StatusIconePronto.DISPONIVEL);

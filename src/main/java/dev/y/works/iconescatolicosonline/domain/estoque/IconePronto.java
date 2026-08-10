@@ -1,6 +1,7 @@
 package dev.y.works.iconescatolicosonline.domain.estoque;
 
 import dev.y.works.iconescatolicosonline.domain.catalogo.ModeloIcone;
+import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import dev.y.works.iconescatolicosonline.domain.encomenda.Encomenda;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,10 +45,10 @@ public class IconePronto {
     @JoinColumn(name = "encomenda_id", unique = true)
     private Encomenda encomenda;
 
-    @NotBlank
-    @Size(max = 50)
-    @Column(nullable = false, length = 50)
-    private String tamanho;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TamanhoIcone tamanho;
 
     @NotBlank
     @Size(max = 80)

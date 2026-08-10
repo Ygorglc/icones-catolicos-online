@@ -1,6 +1,7 @@
 package dev.y.works.iconescatolicosonline.service.encomenda;
 
 import dev.y.works.iconescatolicosonline.domain.catalogo.ModeloIcone;
+import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import dev.y.works.iconescatolicosonline.domain.encomenda.Encomenda;
 import dev.y.works.iconescatolicosonline.domain.encomenda.StatusEncomenda;
 import dev.y.works.iconescatolicosonline.domain.encomenda.StatusFinanceiro;
@@ -67,7 +68,7 @@ class EncomendaServiceTests {
                         10L,
                         2,
                         new PersonalizacaoRequest(
-                                "30x40", "Envernizado", "Abençoe este lar",
+                                TamanhoIcone.MEDIO, "Envernizado", "Abençoe este lar",
                                 "Família Silva", null))));
 
         EncomendaResponse resposta = service.criar("cliente@teste.local", request);

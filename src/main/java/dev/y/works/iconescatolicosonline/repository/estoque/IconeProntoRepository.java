@@ -2,6 +2,7 @@ package dev.y.works.iconescatolicosonline.repository.estoque;
 
 import dev.y.works.iconescatolicosonline.domain.estoque.IconePronto;
 import dev.y.works.iconescatolicosonline.domain.estoque.StatusIconePronto;
+import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 
@@ -19,9 +20,9 @@ public interface IconeProntoRepository extends JpaRepository<IconePronto, Long> 
     boolean existsByEncomenda_Id(Long encomendaId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<IconePronto> findFirstByModeloIcone_IdAndTamanhoIgnoreCaseAndAcabamentoIgnoreCaseAndStatus(
+    Optional<IconePronto> findFirstByModeloIcone_IdAndTamanhoAndAcabamentoIgnoreCaseAndStatus(
             Long modeloIconeId,
-            String tamanho,
+            TamanhoIcone tamanho,
             String acabamento,
             StatusIconePronto status
     );

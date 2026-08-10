@@ -86,9 +86,9 @@ public class IconeProntoService {
                 continue;
             }
             var encontrada = iconeProntoRepository
-                    .findFirstByModeloIcone_IdAndTamanhoIgnoreCaseAndAcabamentoIgnoreCaseAndStatus(
+                    .findFirstByModeloIcone_IdAndTamanhoAndAcabamentoIgnoreCaseAndStatus(
                             item.getModeloIcone().getId(),
-                            personalizacao.getTamanho().trim(),
+                            personalizacao.getTamanho(),
                             personalizacao.getAcabamento().trim(),
                             StatusIconePronto.DISPONIVEL);
             if (encontrada.isPresent()) {
@@ -141,7 +141,7 @@ public class IconeProntoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Modelo de ícone não encontrado."));
         icone.setModeloIcone(modelo);
-        icone.setTamanho(request.tamanho().trim());
+        icone.setTamanho(request.tamanho());
         icone.setAcabamento(request.acabamento().trim());
         icone.setCustoProducao(request.custoProducao());
         icone.setPrecoSugerido(request.precoSugerido());

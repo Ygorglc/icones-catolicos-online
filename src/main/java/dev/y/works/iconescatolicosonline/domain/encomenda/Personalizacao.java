@@ -1,7 +1,10 @@
 package dev.y.works.iconescatolicosonline.domain.encomenda;
 
+import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,9 +32,9 @@ public class Personalizacao {
     @JoinColumn(name = "item_encomenda_id", nullable = false, unique = true)
     private ItemEncomenda itemEncomenda;
 
-    @Size(max = 50)
-    @Column(length = 50)
-    private String tamanho;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private TamanhoIcone tamanho;
 
     @Size(max = 80)
     @Column(length = 80)
