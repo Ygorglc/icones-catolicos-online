@@ -33,7 +33,6 @@ import java.util.Set;
 public class EncomendaService {
 
     private static final Map<StatusEncomenda, Set<StatusEncomenda>> TRANSICOES = Map.of(
-            StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL, Set.of(StatusEncomenda.SINAL_PAGO),
             StatusEncomenda.SINAL_PAGO, Set.of(StatusEncomenda.PRODUCAO_LIBERADA),
             StatusEncomenda.PRODUCAO_LIBERADA, Set.of(StatusEncomenda.EM_PRODUCAO),
             StatusEncomenda.EM_PRODUCAO, Set.of(StatusEncomenda.EM_ACABAMENTO),
@@ -131,6 +130,12 @@ public class EncomendaService {
     public EncomendaResponse atualizarStatus(Long id, StatusEncomenda novoStatus) {
         Encomenda encomenda = buscarEntidade(id);
         StatusEncomenda atual = encomenda.getStatusEncomenda();
+
+        if (novoStatus == StatusEncomenda.CONCLUIDO
+                && encomenda.getStatusFinanceiro() != StatusFinanceiro.PAGO_INTEGRALMENTE) {
+            throw new RegraNegocioException(
+                    "A encomenda só pode ser concluída após o pagamento integral.");
+        }
 
         if (novoStatus == StatusEncomenda.CANCELADO) {
             if (atual == StatusEncomenda.CONCLUIDO || atual == StatusEncomenda.CANCELADO) {

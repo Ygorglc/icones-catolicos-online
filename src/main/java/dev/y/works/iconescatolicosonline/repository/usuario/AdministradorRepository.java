@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface AdministradorRepository extends JpaRepository<Administrador, Long> {
 
     Optional<Administrador> findByUsuario_Id(Long usuarioId);
+
+    Optional<Administrador> findByUsuario_EmailIgnoreCase(String email);
 }

@@ -11,4 +11,8 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
     List<Pagamento> findByEncomenda_IdOrderByCriadoEmAsc(Long encomendaId);
 
     List<Pagamento> findByEncomenda_IdAndStatus(Long encomendaId, StatusPagamento status);
+
+    List<Pagamento> findByStatusOrderByCriadoEmAsc(StatusPagamento status);
+
+    boolean existsByEncomenda_IdAndStatus(Long encomendaId, StatusPagamento status);
 }

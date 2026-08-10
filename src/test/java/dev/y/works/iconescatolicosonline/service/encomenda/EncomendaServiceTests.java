@@ -119,6 +119,16 @@ class EncomendaServiceTests {
                 .hasMessageContaining("Transição de status não permitida");
     }
 
+    @Test
+    void deveImpedirConclusaoComSaldoPendente() {
+        Encomenda encomenda = criarEncomenda(StatusEncomenda.ENVIADO_OU_RETIRADO);
+        when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
+
+        assertThatThrownBy(() -> service.atualizarStatus(1L, StatusEncomenda.CONCLUIDO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("A encomenda só pode ser concluída após o pagamento integral.");
+    }
+
     private Cliente criarCliente() {
         Usuario usuario = new Usuario();
         usuario.setId(1L);

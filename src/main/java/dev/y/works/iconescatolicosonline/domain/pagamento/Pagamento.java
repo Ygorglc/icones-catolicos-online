@@ -1,6 +1,7 @@
 package dev.y.works.iconescatolicosonline.domain.pagamento;
 
 import dev.y.works.iconescatolicosonline.domain.encomenda.Encomenda;
+import dev.y.works.iconescatolicosonline.domain.usuario.Administrador;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,6 +45,16 @@ public class Pagamento {
     private TipoPagamento tipo;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "forma_pagamento", nullable = false, length = 30)
+    private FormaPagamento formaPagamento;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private OrigemPagamento origem;
+
+    @NotNull
     @DecimalMin(value = "0.01")
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
@@ -59,6 +70,16 @@ public class Pagamento {
     @Size(max = 100)
     @Column(name = "referencia_simulada", length = 100)
     private String referenciaSimulada;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "analisado_por_administrador_id")
+    private Administrador analisadoPor;
+
+    @Column(name = "data_analise")
+    private Instant dataAnalise;
+
+    @Column(name = "observacao_administrativa", columnDefinition = "TEXT")
+    private String observacaoAdministrativa;
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private Instant criadoEm = Instant.now();
