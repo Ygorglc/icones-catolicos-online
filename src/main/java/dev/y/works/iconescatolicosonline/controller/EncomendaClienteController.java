@@ -2,6 +2,8 @@ package dev.y.works.iconescatolicosonline.controller;
 
 import dev.y.works.iconescatolicosonline.dto.encomenda.CriarEncomendaRequest;
 import dev.y.works.iconescatolicosonline.dto.encomenda.EncomendaResponse;
+import dev.y.works.iconescatolicosonline.dto.certificado.CertificadoArtesanalResponse;
+import dev.y.works.iconescatolicosonline.service.certificado.CertificadoArtesanalService;
 import dev.y.works.iconescatolicosonline.service.encomenda.EncomendaService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -23,9 +25,13 @@ import java.util.List;
 public class EncomendaClienteController {
 
     private final EncomendaService encomendaService;
+    private final CertificadoArtesanalService certificadoService;
 
-    public EncomendaClienteController(EncomendaService encomendaService) {
+    public EncomendaClienteController(
+            EncomendaService encomendaService,
+            CertificadoArtesanalService certificadoService) {
         this.encomendaService = encomendaService;
+        this.certificadoService = certificadoService;
     }
 
     @PostMapping
@@ -47,5 +53,13 @@ public class EncomendaClienteController {
             Authentication authentication) {
         return ResponseEntity.ok(
                 encomendaService.buscarDoCliente(id, authentication.getName()));
+    }
+
+    @GetMapping("/{id}/certificado")
+    public ResponseEntity<CertificadoArtesanalResponse> buscarCertificado(
+            @PathVariable Long id,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                certificadoService.buscarDoCliente(id, authentication.getName()));
     }
 }

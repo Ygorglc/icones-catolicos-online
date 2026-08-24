@@ -73,6 +73,16 @@ public class CertificadoArtesanalService {
     }
 
     @Transactional(readOnly = true)
+    public CertificadoArtesanalResponse buscarDoCliente(
+            Long encomendaId, String emailCliente) {
+        encomendaRepository.findByIdAndCliente_Usuario_EmailIgnoreCase(
+                        encomendaId, emailCliente)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Encomenda não encontrada."));
+        return buscarPorEncomenda(encomendaId);
+    }
+
+    @Transactional(readOnly = true)
     public CertificadoArtesanalResponse consultarPublicamente(String codigoPublico) {
         String codigo = codigoPublico == null
                 ? "" : codigoPublico.trim().toLowerCase(Locale.ROOT);

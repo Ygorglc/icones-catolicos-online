@@ -12,7 +12,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SegurancaTestController.class)
@@ -33,6 +35,16 @@ class SegurancaHttpTests {
         mockMvc.perform(get("/api/publico/teste"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("publico"));
+    }
+
+    @Test
+    void devePermitirRequisicaoDoFrontendAngular() throws Exception {
+        mockMvc.perform(options("/api/publico/teste")
+                        .header("Origin", "http://localhost:4200")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(
+                        "Access-Control-Allow-Origin", "http://localhost:4200"));
     }
 
     @Test
