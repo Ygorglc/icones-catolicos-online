@@ -44,8 +44,29 @@ public class CertificadoArtesanal {
     @Column(name = "data_emissao", nullable = false)
     private LocalDate dataEmissao;
 
-    @Column(name = "material_utilizado", columnDefinition = "TEXT")
+    @NotBlank
+    @Column(name = "material_utilizado", nullable = false, columnDefinition = "TEXT")
     private String materialUtilizado;
+
+    @NotBlank
+    @Size(max = 120)
+    @Column(name = "nome_artesao", nullable = false, length = 120)
+    private String nomeArtesao;
+
+    @NotBlank
+    @Size(max = 120)
+    @Column(name = "modelo_icone", nullable = false, length = 120)
+    private String modeloIcone;
+
+    @NotBlank
+    @Size(max = 20)
+    @Column(name = "tamanho_icone", nullable = false, length = 20)
+    private String tamanhoIcone;
+
+    @NotBlank
+    @Size(max = 80)
+    @Column(nullable = false, length = 80)
+    private String acabamento;
 
     @NotBlank
     @Column(name = "texto_certificado", nullable = false, columnDefinition = "TEXT")
