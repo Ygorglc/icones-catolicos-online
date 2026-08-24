@@ -11,4 +11,6 @@ public interface GastoRepository extends JpaRepository<Gasto, Long> {
     List<Gasto> findByDataGastoBetweenOrderByDataGastoAsc(LocalDate inicio, LocalDate fim);
 
     List<Gasto> findByEncomenda_IdOrderByDataGastoAsc(Long encomendaId);
+
+    List<Gasto> findAllByOrderByDataGastoDescIdDesc();
 }

@@ -12,4 +12,11 @@ public interface VendaRepository extends JpaRepository<Venda, Long> {
     Optional<Venda> findByEncomenda_Id(Long encomendaId);
 
     List<Venda> findByDataVendaBetweenOrderByDataVendaAsc(Instant inicio, Instant fim);
+
+    List<Venda> findByDataVendaGreaterThanEqualAndDataVendaLessThanOrderByDataVendaAsc(
+            Instant inicio, Instant fimExclusivo);
+
+    List<Venda> findAllByOrderByDataVendaDesc();
+
+    boolean existsByEncomenda_Id(Long encomendaId);
 }
