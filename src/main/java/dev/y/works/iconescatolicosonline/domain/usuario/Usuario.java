@@ -55,4 +55,10 @@ public class Usuario {
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private Instant criadoEm = Instant.now();
+
+    @Column(name = "token_recuperacao_senha_hash", length = 64)
+    private String tokenRecuperacaoSenhaHash;
+
+    @Column(name = "token_recuperacao_senha_expira_em")
+    private Instant tokenRecuperacaoSenhaExpiraEm;
 }
