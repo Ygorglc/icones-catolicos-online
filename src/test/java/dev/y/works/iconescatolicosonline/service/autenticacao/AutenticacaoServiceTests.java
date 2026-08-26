@@ -44,8 +44,7 @@ class AutenticacaoServiceTests {
         AutenticacaoService service = criarService();
         CadastroClienteRequest request = new CadastroClienteRequest(
                 "Maria", " MARIA@EXEMPLO.COM ", "senha123",
-                "11999999999", "52998224725", "20040002", "Rua A", "10",
-                null, "Centro", "Rio de Janeiro", "RJ");
+                "11999999999", "52998224725");
         when(passwordEncoder.encode("senha123")).thenReturn("senha-bcrypt");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
             Usuario usuario = invocation.getArgument(0);
@@ -69,8 +68,7 @@ class AutenticacaoServiceTests {
     void deveImpedirCadastroComEmailDuplicado() {
         AutenticacaoService service = criarService();
         CadastroClienteRequest request = new CadastroClienteRequest(
-                "Maria", "maria@exemplo.com", "senha123", "11999999999", "52998224725",
-                "20040002", "Rua A", "10", null, "Centro", "Rio de Janeiro", "RJ");
+                "Maria", "maria@exemplo.com", "senha123", "11999999999", "52998224725");
         when(usuarioRepository.existsByEmailIgnoreCase("maria@exemplo.com")).thenReturn(true);
 
         assertThatThrownBy(() -> service.cadastrarCliente(request))

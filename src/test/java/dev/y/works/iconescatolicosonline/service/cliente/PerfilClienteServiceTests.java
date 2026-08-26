@@ -47,8 +47,7 @@ class PerfilClienteServiceTests {
 
         var resposta = service.atualizar("maria@teste.com",
                 new AtualizarPerfilClienteRequest(
-                        "Maria Silva", "21999999999", "52998224725", "20040002",
-                        "Rua da Assembleia", "10", null, "Centro", "Rio de Janeiro", "RJ"));
+                        "Maria Silva", "21999999999", "52998224725"));
 
         assertThat(resposta.nome()).isEqualTo("Maria Silva");
         assertThat(resposta.email()).isEqualTo("maria@teste.com");
@@ -64,8 +63,7 @@ class PerfilClienteServiceTests {
         when(clienteRepository.findByCpf("52998224725")).thenReturn(Optional.of(outro));
 
         assertThatThrownBy(() -> service.atualizar("maria@teste.com",
-                new AtualizarPerfilClienteRequest("Maria", "21999999999", "52998224725",
-                        "20040002", "Rua A", "10", null, "Centro", "Rio de Janeiro", "RJ")))
+                new AtualizarPerfilClienteRequest("Maria", "21999999999", "52998224725")))
                 .isInstanceOf(ConflitoException.class)
                 .hasMessage("CPF já cadastrado.");
     }

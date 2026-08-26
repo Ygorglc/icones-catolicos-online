@@ -44,13 +44,6 @@ public class PerfilClienteService {
         cliente.getUsuario().setNome(request.nome().trim());
         cliente.setTelefone(normalizar(request.telefone()));
         cliente.setCpf(cpf);
-        cliente.setCep(request.cep().trim());
-        cliente.setLogradouro(request.logradouro().trim());
-        cliente.setNumero(request.numero().trim());
-        cliente.setComplemento(normalizar(request.complemento()));
-        cliente.setBairro(request.bairro().trim());
-        cliente.setCidade(request.cidade().trim());
-        cliente.setUf(request.uf().trim().toUpperCase(java.util.Locale.ROOT));
         return mapear(clienteRepository.save(cliente));
     }
 
@@ -68,8 +61,6 @@ public class PerfilClienteService {
         return new PerfilClienteResponse(
                 cliente.getUsuario().getId(), cliente.getId(),
                 cliente.getUsuario().getNome(), cliente.getUsuario().getEmail(),
-                cliente.getTelefone(), cliente.getCpf(), cliente.getCep(),
-                cliente.getLogradouro(), cliente.getNumero(), cliente.getComplemento(),
-                cliente.getBairro(), cliente.getCidade(), cliente.getUf());
+                cliente.getTelefone(), cliente.getCpf());
     }
 }

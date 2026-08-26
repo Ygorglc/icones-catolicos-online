@@ -230,14 +230,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                                   "email": "%s",
                                   "senha": "cliente123",
                                   "telefone": "11999998888",
-                                  "cpf": "52998224725",
-                                  "cep": "20040002",
-                                  "logradouro": "Rua do Teste",
-                                  "numero": "100",
-                                  "complemento": null,
-                                  "bairro": "Centro",
-                                  "cidade": "Rio de Janeiro",
-                                  "uf": "RJ"
+                                  "cpf": "52998224725"
                                 }
                                 """.formatted(email)))
                 .andExpect(status().isCreated())

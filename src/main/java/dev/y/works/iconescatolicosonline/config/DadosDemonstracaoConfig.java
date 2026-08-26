@@ -190,12 +190,6 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
         cliente.setUsuario(usuario);
         cliente.setTelefone("11999990000");
         cliente.setCpf("12345678901");
-        cliente.setCep("20040002");
-        cliente.setLogradouro("Rua das Artes");
-        cliente.setNumero("100");
-        cliente.setBairro("Centro");
-        cliente.setCidade("Rio de Janeiro");
-        cliente.setUf("RJ");
         return clienteRepository.save(cliente);
     }
 
@@ -253,9 +247,7 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
         encomenda.setValorTotal(new BigDecimal(total));
         encomenda.setValorSinal(new BigDecimal(sinal));
         encomenda.setTipoEntrega(TipoEntrega.ENTREGA);
-        encomenda.setEnderecoEntrega(cliente.getLogradouro() + ", " + cliente.getNumero()
-                + " - " + cliente.getBairro() + ", " + cliente.getCidade()
-                + "/" + cliente.getUf() + " - CEP " + cliente.getCep());
+        encomenda.setEnderecoEntrega("Rua das Artes, 100 - Centro, Rio de Janeiro/RJ - CEP 20040002");
         encomenda.setObservacoes("Registro fictício criado para demonstração acadêmica.");
 
         ItemEncomenda item = new ItemEncomenda();

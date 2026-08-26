@@ -37,31 +37,4 @@ public class Cliente {
     @Column(unique = true, length = 14)
     private String cpf;
 
-    @Size(max = 8)
-    @Column(length = 8)
-    private String cep;
-
-    @Size(max = 150)
-    @Column(length = 150)
-    private String logradouro;
-
-    @Size(max = 20)
-    @Column(name = "numero_endereco", length = 20)
-    private String numero;
-
-    @Size(max = 100)
-    @Column(length = 100)
-    private String complemento;
-
-    @Size(max = 100)
-    @Column(length = 100)
-    private String bairro;
-
-    @Size(max = 100)
-    @Column(length = 100)
-    private String cidade;
-
-    @Size(max = 2)
-    @Column(length = 2)
-    private String uf;
 }
