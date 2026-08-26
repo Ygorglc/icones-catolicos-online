@@ -4,6 +4,7 @@ import dev.y.works.iconescatolicosonline.domain.usuario.Cliente;
 import dev.y.works.iconescatolicosonline.domain.usuario.PerfilUsuario;
 import dev.y.works.iconescatolicosonline.domain.usuario.Usuario;
 import dev.y.works.iconescatolicosonline.dto.autenticacao.AutenticacaoResponse;
+import dev.y.works.iconescatolicosonline.dto.autenticacao.CadastroClienteResponse;
 import dev.y.works.iconescatolicosonline.dto.autenticacao.CadastroClienteRequest;
 import dev.y.works.iconescatolicosonline.dto.autenticacao.LoginRequest;
 import dev.y.works.iconescatolicosonline.exception.ConflitoException;
@@ -36,38 +37,38 @@ class AutenticacaoServiceTests {
     @Mock PasswordEncoder passwordEncoder;
     @Mock AuthenticationManager authenticationManager;
     @Mock JwtService jwtService;
+    @Mock ConfirmacaoEmailService confirmacaoEmailService;
 
     @Test
     void deveCadastrarClienteComSenhaCodificada() {
         AutenticacaoService service = criarService();
         CadastroClienteRequest request = new CadastroClienteRequest(
                 "Maria", " MARIA@EXEMPLO.COM ", "senha123",
-                "11999999999", "12345678901", "Rua A");
+                "11999999999", "52998224725", "Rua A");
         when(passwordEncoder.encode("senha123")).thenReturn("senha-bcrypt");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
             Usuario usuario = invocation.getArgument(0);
             usuario.setId(1L);
             return usuario;
         });
-        when(jwtService.gerarToken(any(Usuario.class))).thenReturn("jwt");
-        when(jwtService.getExpiracaoEmSegundos()).thenReturn(7_200L);
-
-        AutenticacaoResponse resposta = service.cadastrarCliente(request);
+        CadastroClienteResponse resposta = service.cadastrarCliente(request);
 
         ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
         verify(usuarioRepository).save(usuarioCaptor.capture());
         assertThat(usuarioCaptor.getValue().getSenha()).isEqualTo("senha-bcrypt");
         assertThat(usuarioCaptor.getValue().getEmail()).isEqualTo("maria@exemplo.com");
         assertThat(usuarioCaptor.getValue().getPerfil()).isEqualTo(PerfilUsuario.CLIENTE);
+        assertThat(usuarioCaptor.getValue().isEmailVerificado()).isFalse();
         verify(clienteRepository).save(any(Cliente.class));
-        assertThat(resposta.token()).isEqualTo("jwt");
+        verify(confirmacaoEmailService).gerarEEnviar(any(Usuario.class));
+        assertThat(resposta.mensagem()).contains("Verifique seu e-mail");
     }
 
     @Test
     void deveImpedirCadastroComEmailDuplicado() {
         AutenticacaoService service = criarService();
         CadastroClienteRequest request = new CadastroClienteRequest(
-                "Maria", "maria@exemplo.com", "senha123", null, null, null);
+                "Maria", "maria@exemplo.com", "senha123", "11999999999", "52998224725", null);
         when(usuarioRepository.existsByEmailIgnoreCase("maria@exemplo.com")).thenReturn(true);
 
         assertThatThrownBy(() -> service.cadastrarCliente(request))
@@ -108,6 +109,6 @@ class AutenticacaoServiceTests {
     private AutenticacaoService criarService() {
         return new AutenticacaoService(
                 usuarioRepository, clienteRepository, passwordEncoder,
-                authenticationManager, jwtService);
+                authenticationManager, jwtService, confirmacaoEmailService);
     }
 }

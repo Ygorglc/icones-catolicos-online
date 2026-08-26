@@ -61,4 +61,13 @@ public class Usuario {
 
     @Column(name = "token_recuperacao_senha_expira_em")
     private Instant tokenRecuperacaoSenhaExpiraEm;
+
+    @Column(name = "email_verificado", nullable = false)
+    private boolean emailVerificado = true;
+
+    @Column(name = "token_confirmacao_email_hash", length = 64)
+    private String tokenConfirmacaoEmailHash;
+
+    @Column(name = "token_confirmacao_email_expira_em")
+    private Instant tokenConfirmacaoEmailExpiraEm;
 }

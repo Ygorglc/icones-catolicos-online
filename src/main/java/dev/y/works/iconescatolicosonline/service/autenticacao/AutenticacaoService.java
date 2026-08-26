@@ -4,9 +4,11 @@ import dev.y.works.iconescatolicosonline.domain.usuario.Cliente;
 import dev.y.works.iconescatolicosonline.domain.usuario.PerfilUsuario;
 import dev.y.works.iconescatolicosonline.domain.usuario.Usuario;
 import dev.y.works.iconescatolicosonline.dto.autenticacao.AutenticacaoResponse;
+import dev.y.works.iconescatolicosonline.dto.autenticacao.CadastroClienteResponse;
 import dev.y.works.iconescatolicosonline.dto.autenticacao.CadastroClienteRequest;
 import dev.y.works.iconescatolicosonline.dto.autenticacao.LoginRequest;
 import dev.y.works.iconescatolicosonline.exception.ConflitoException;
+import dev.y.works.iconescatolicosonline.exception.RegraNegocioException;
 import dev.y.works.iconescatolicosonline.repository.usuario.ClienteRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.UsuarioRepository;
 import dev.y.works.iconescatolicosonline.security.JwtService;
@@ -26,27 +28,35 @@ public class AutenticacaoService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final ConfirmacaoEmailService confirmacaoEmailService;
 
     public AutenticacaoService(
             UsuarioRepository usuarioRepository,
             ClienteRepository clienteRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            JwtService jwtService) {
+            JwtService jwtService,
+            ConfirmacaoEmailService confirmacaoEmailService) {
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.confirmacaoEmailService = confirmacaoEmailService;
     }
 
     @Transactional
-    public AutenticacaoResponse cadastrarCliente(CadastroClienteRequest request) {
+    public CadastroClienteResponse cadastrarCliente(CadastroClienteRequest request) {
         String email = normalizarEmail(request.email());
+        String cpf = request.cpf().trim();
+        String telefone = request.telefone().trim();
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new ConflitoException("Já existe um usuário com esse e-mail.");
         }
-        if (request.cpf() != null && clienteRepository.existsByCpf(request.cpf())) {
+        if (!CpfValidator.isValid(cpf)) {
+            throw new RegraNegocioException("CPF inválido.");
+        }
+        if (clienteRepository.existsByCpf(cpf)) {
             throw new ConflitoException("Já existe um cliente com esse CPF.");
         }
 
@@ -56,16 +66,18 @@ public class AutenticacaoService {
         usuario.setSenha(passwordEncoder.encode(request.senha()));
         usuario.setPerfil(PerfilUsuario.CLIENTE);
         usuario.setAtivo(true);
+        usuario.setEmailVerificado(false);
         usuario = usuarioRepository.save(usuario);
 
         Cliente cliente = new Cliente();
         cliente.setUsuario(usuario);
-        cliente.setTelefone(request.telefone());
-        cliente.setCpf(request.cpf());
+        cliente.setTelefone(telefone);
+        cliente.setCpf(cpf);
         cliente.setEndereco(request.endereco());
         clienteRepository.save(cliente);
 
-        return criarResposta(usuario);
+        confirmacaoEmailService.gerarEEnviar(usuario);
+        return new CadastroClienteResponse("Cadastro realizado. Verifique seu e-mail para confirmar a conta; confira também o spam.");
     }
 
     @Transactional(readOnly = true)
