@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/clientes/**").hasRole("CLIENTE")
-                        .requestMatchers("/api/carrinho/**").hasRole("CLIENTE")
+                        .requestMatchers("/api/carrinho/**").hasAnyRole("CLIENTE", "ADMINISTRADOR")
                         .requestMatchers("/api/encomendas/**").hasRole("CLIENTE")
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
