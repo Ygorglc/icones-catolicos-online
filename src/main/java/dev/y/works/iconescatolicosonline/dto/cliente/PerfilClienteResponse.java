@@ -7,6 +7,12 @@ public record PerfilClienteResponse(
         String email,
         String telefone,
         String cpf,
-        String endereco
+        String cep,
+        String logradouro,
+        String numero,
+        String complemento,
+        String bairro,
+        String cidade,
+        String uf
 ) {
 }

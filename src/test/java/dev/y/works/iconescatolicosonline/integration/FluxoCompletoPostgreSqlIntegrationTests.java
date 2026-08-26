@@ -230,13 +230,25 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                                   "email": "%s",
                                   "senha": "cliente123",
                                   "telefone": "11999998888",
-                                  "endereco": "Rua do Teste, 100"
+                                  "cpf": "52998224725",
+                                  "cep": "20040002",
+                                  "logradouro": "Rua do Teste",
+                                  "numero": "100",
+                                  "complemento": null,
+                                  "bairro": "Centro",
+                                  "cidade": "Rio de Janeiro",
+                                  "uf": "RJ"
                                 }
                                 """.formatted(email)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.perfil").value("CLIENTE"))
+                .andExpect(jsonPath("$.mensagem").exists())
                 .andReturn();
-        return texto(resultado, "$.token");
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElseThrow();
+        usuario.setEmailVerificado(true);
+        usuario.setTokenConfirmacaoEmailHash(null);
+        usuario.setTokenConfirmacaoEmailExpiraEm(null);
+        usuarioRepository.save(usuario);
+        return autenticar(email, "cliente123");
     }
 
     private String autenticar(String email, String senha) throws Exception {

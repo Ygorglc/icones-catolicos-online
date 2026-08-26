@@ -73,7 +73,13 @@ public class AutenticacaoService {
         cliente.setUsuario(usuario);
         cliente.setTelefone(telefone);
         cliente.setCpf(cpf);
-        cliente.setEndereco(request.endereco());
+        cliente.setCep(request.cep().trim());
+        cliente.setLogradouro(request.logradouro().trim());
+        cliente.setNumero(request.numero().trim());
+        cliente.setComplemento(normalizarOpcional(request.complemento()));
+        cliente.setBairro(request.bairro().trim());
+        cliente.setCidade(request.cidade().trim());
+        cliente.setUf(request.uf().trim().toUpperCase(Locale.ROOT));
         clienteRepository.save(cliente);
 
         confirmacaoEmailService.gerarEEnviar(usuario);
@@ -102,5 +108,9 @@ public class AutenticacaoService {
 
     private String normalizarEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizarOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 }
