@@ -2,9 +2,10 @@ package dev.y.works.iconescatolicosonline.dto.encomenda;
 
 import dev.y.works.iconescatolicosonline.domain.catalogo.TamanhoIcone;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 
 public record PersonalizacaoRequest(
-        TamanhoIcone tamanho,
+        @NotNull TamanhoIcone tamanho,
         @Size(max = 80) String acabamento,
         @Size(max = 255) String frase,
         @Size(max = 120) String nomeFamilia,
