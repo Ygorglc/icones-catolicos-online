@@ -17,6 +17,7 @@ import dev.y.works.iconescatolicosonline.dto.encomenda.PersonalizacaoResponse;
 import dev.y.works.iconescatolicosonline.exception.RecursoNaoEncontradoException;
 import dev.y.works.iconescatolicosonline.exception.RegraNegocioException;
 import dev.y.works.iconescatolicosonline.repository.catalogo.ModeloIconeRepository;
+import dev.y.works.iconescatolicosonline.repository.configuracao.ConfiguracaoLojaRepository;
 import dev.y.works.iconescatolicosonline.repository.encomenda.EncomendaRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.ClienteRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +34,7 @@ import java.util.Set;
 public class EncomendaService {
 
     private static final Map<StatusEncomenda, Set<StatusEncomenda>> TRANSICOES = Map.of(
-            StatusEncomenda.SINAL_PAGO, Set.of(StatusEncomenda.PRODUCAO_LIBERADA),
+            StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO, Set.of(StatusEncomenda.PRODUCAO_LIBERADA),
             StatusEncomenda.PRODUCAO_LIBERADA, Set.of(StatusEncomenda.EM_PRODUCAO),
             StatusEncomenda.EM_PRODUCAO, Set.of(StatusEncomenda.EM_ACABAMENTO),
             StatusEncomenda.EM_ACABAMENTO, Set.of(StatusEncomenda.PRONTO_PARA_ENTREGA_RETIRADA),
@@ -47,16 +48,19 @@ public class EncomendaService {
     private final EncomendaRepository encomendaRepository;
     private final ClienteRepository clienteRepository;
     private final ModeloIconeRepository modeloIconeRepository;
+    private final ConfiguracaoLojaRepository configuracaoLojaRepository;
     private final BigDecimal percentualSinal;
 
     public EncomendaService(
             EncomendaRepository encomendaRepository,
             ClienteRepository clienteRepository,
             ModeloIconeRepository modeloIconeRepository,
+            ConfiguracaoLojaRepository configuracaoLojaRepository,
             @Value("${app.encomenda.percentual-sinal-minimo}") BigDecimal percentualSinal) {
         this.encomendaRepository = encomendaRepository;
         this.clienteRepository = clienteRepository;
         this.modeloIconeRepository = modeloIconeRepository;
+        this.configuracaoLojaRepository = configuracaoLojaRepository;
         if (percentualSinal.signum() <= 0 || percentualSinal.compareTo(new BigDecimal("100")) > 0) {
             throw new IllegalArgumentException("O percentual do sinal deve estar entre 0 e 100.");
         }
@@ -70,7 +74,7 @@ public class EncomendaService {
 
         Encomenda encomenda = new Encomenda();
         encomenda.setCliente(cliente);
-        encomenda.setStatusEncomenda(StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL);
+        encomenda.setStatusEncomenda(StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL);
         encomenda.setStatusFinanceiro(StatusFinanceiro.AGUARDANDO_SINAL);
         encomenda.setTipoEntrega(request.tipoEntrega());
         encomenda.setEnderecoEntrega(
@@ -165,6 +169,11 @@ public class EncomendaService {
     }
 
     private void validarEntrega(CriarEncomendaRequest request) {
+        if (request.tipoEntrega() == TipoEntrega.ENTREGA
+                && configuracaoLojaRepository.findById(1L)
+                .map(configuracao -> !configuracao.isEntregaHabilitada()).orElse(false)) {
+            throw new RegraNegocioException("A entrega está desabilitada. Selecione retirada na oficina.");
+        }
         if (request.tipoEntrega() == TipoEntrega.ENTREGA
                 && (request.enderecoEntrega() == null || request.enderecoEntrega().isBlank())) {
             throw new RegraNegocioException("O endereço é obrigatório para entrega.");

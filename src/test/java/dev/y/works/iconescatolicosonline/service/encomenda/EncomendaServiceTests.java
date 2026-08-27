@@ -14,6 +14,7 @@ import dev.y.works.iconescatolicosonline.dto.encomenda.ItemEncomendaRequest;
 import dev.y.works.iconescatolicosonline.dto.encomenda.PersonalizacaoRequest;
 import dev.y.works.iconescatolicosonline.exception.RegraNegocioException;
 import dev.y.works.iconescatolicosonline.repository.catalogo.ModeloIconeRepository;
+import dev.y.works.iconescatolicosonline.repository.configuracao.ConfiguracaoLojaRepository;
 import dev.y.works.iconescatolicosonline.repository.encomenda.EncomendaRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.ClienteRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,13 +38,14 @@ class EncomendaServiceTests {
     @Mock EncomendaRepository encomendaRepository;
     @Mock ClienteRepository clienteRepository;
     @Mock ModeloIconeRepository modeloIconeRepository;
+    @Mock ConfiguracaoLojaRepository configuracaoLojaRepository;
 
     private EncomendaService service;
 
     @BeforeEach
     void configurar() {
         service = new EncomendaService(
-                encomendaRepository, clienteRepository, modeloIconeRepository,
+                encomendaRepository, clienteRepository, modeloIconeRepository, configuracaoLojaRepository,
                 new BigDecimal("30"));
     }
 
@@ -77,7 +79,7 @@ class EncomendaServiceTests {
         assertThat(resposta.valorTotal()).isEqualByComparingTo("500.00");
         assertThat(resposta.valorSinal()).isEqualByComparingTo("150.00");
         assertThat(resposta.statusEncomenda())
-                .isEqualTo(StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL);
+                .isEqualTo(StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL);
         assertThat(resposta.statusFinanceiro()).isEqualTo(StatusFinanceiro.AGUARDANDO_SINAL);
         assertThat(resposta.enderecoEntrega()).isEqualTo("Rua das Flores, 10");
         assertThat(resposta.itens().getFirst().subtotal()).isEqualByComparingTo("500.00");
@@ -100,7 +102,7 @@ class EncomendaServiceTests {
 
     @Test
     void deveAtualizarStatusQuandoTransicaoForPermitida() {
-        Encomenda encomenda = criarEncomenda(StatusEncomenda.SINAL_PAGO);
+        Encomenda encomenda = criarEncomenda(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
         when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
         when(encomendaRepository.save(encomenda)).thenReturn(encomenda);
 
@@ -112,7 +114,7 @@ class EncomendaServiceTests {
 
     @Test
     void deveRejeitarSaltoDeStatus() {
-        Encomenda encomenda = criarEncomenda(StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL);
+        Encomenda encomenda = criarEncomenda(StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL);
         when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
 
         assertThatThrownBy(() -> service.atualizarStatus(1L, StatusEncomenda.EM_PRODUCAO))

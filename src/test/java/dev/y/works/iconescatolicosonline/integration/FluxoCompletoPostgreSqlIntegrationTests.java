@@ -125,7 +125,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                 .andExpect(jsonPath("$.valorTotal").value(300.0))
                 .andExpect(jsonPath("$.valorSinal").value(90.0))
                 .andExpect(jsonPath("$.statusEncomenda")
-                        .value("AGUARDANDO_PAGAMENTO_SINAL"))
+                        .value("AGUARDANDO_PAGAMENTO_INICIAL"))
                 .andReturn();
         Long encomendaId = numero(criacao, "$.id");
 
@@ -158,7 +158,9 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("CONFIRMADO"))
-                .andExpect(jsonPath("$.statusEncomenda").value("PRODUCAO_LIBERADA"));
+                .andExpect(jsonPath("$.statusEncomenda").value("PAGAMENTO_INICIAL_CONFIRMADO"));
+
+        atualizarStatus(encomendaId, "PRODUCAO_LIBERADA", tokenAdmin, 200);
 
         mockMvc.perform(post("/api/admin/estoque/icones-prontos/reservas")
                         .header("Authorization", bearer(tokenAdmin))
@@ -178,7 +180,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                         .content("""
                                 {
                                   "tipo": "RESTANTE",
-                                  "forma": "CARTAO_CREDITO",
+                                  "forma": "PIX",
                                   "origem": "SIMULADO_SISTEMA"
                                 }
                                 """))

@@ -52,7 +52,7 @@ class PagamentoServiceTests {
     }
 
     @Test
-    void deveConfirmarSinalELiberarProducao() {
+    void deveConfirmarSinalEAguardarLiberacaoDaProducao() {
         Encomenda encomenda = criarEncomenda();
         prepararPagamento(encomenda, List.of());
 
@@ -65,7 +65,7 @@ class PagamentoServiceTests {
         assertThat(resposta.saldoPendente()).isEqualByComparingTo("175.00");
         assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.SINAL_PAGO);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PRODUCAO_LIBERADA);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
     }
 
     @Test
@@ -81,7 +81,7 @@ class PagamentoServiceTests {
         assertThat(resposta.saldoPendente()).isZero();
         assertThat(encomenda.getStatusFinanceiro())
                 .isEqualTo(StatusFinanceiro.PAGO_INTEGRALMENTE);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PRODUCAO_LIBERADA);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
     }
 
     @Test
@@ -160,7 +160,7 @@ class PagamentoServiceTests {
         assertThat(resposta.totalPago()).isZero();
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.AGUARDANDO_SINAL);
         assertThat(encomenda.getStatusEncomenda())
-                .isEqualTo(StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL);
+                .isEqualTo(StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL);
     }
 
     @Test
@@ -185,7 +185,85 @@ class PagamentoServiceTests {
         assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
         assertThat(resposta.analisadoPor()).isEqualTo("Administrador");
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.SINAL_PAGO);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PRODUCAO_LIBERADA);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+    }
+
+    @Test
+    void devePermitirAdministradorRegistrarSinalRecebidoExternamente() {
+        Encomenda encomenda = criarEncomenda();
+        Administrador administrador = criarAdministrador();
+        when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
+        when(administradorRepository.findByUsuario_EmailIgnoreCase("admin@teste.local"))
+                .thenReturn(Optional.of(administrador));
+        when(pagamentoRepository.findByEncomenda_IdAndStatus(1L, StatusPagamento.CONFIRMADO))
+                .thenReturn(List.of());
+        when(pagamentoRepository.save(any(Pagamento.class))).thenAnswer(invocation -> {
+            Pagamento pagamento = invocation.getArgument(0);
+            pagamento.setId(30L);
+            return pagamento;
+        });
+
+        PagamentoResponse resposta = service.confirmarRecebimentoExterno(
+                1L, "admin@teste.local",
+                new RegistrarPagamentoRequest(TipoPagamento.SINAL,
+                        FormaPagamento.PIX, OrigemPagamento.EXTERNO_MANUAL));
+
+        assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
+        assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.SINAL_PAGO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+    }
+
+    @Test
+    void devePermitirAdministradorConfirmarPagamentoIntegralRecebidoExternamente() {
+        Encomenda encomenda = criarEncomenda();
+        Administrador administrador = criarAdministrador();
+        when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
+        when(administradorRepository.findByUsuario_EmailIgnoreCase("admin@teste.local"))
+                .thenReturn(Optional.of(administrador));
+        when(pagamentoRepository.findByEncomenda_IdAndStatus(1L, StatusPagamento.CONFIRMADO))
+                .thenReturn(List.of());
+        when(pagamentoRepository.save(any(Pagamento.class))).thenAnswer(invocation -> {
+            Pagamento pagamento = invocation.getArgument(0);
+            pagamento.setId(31L);
+            return pagamento;
+        });
+
+        PagamentoResponse resposta = service.confirmarRecebimentoExterno(
+                1L, "admin@teste.local",
+                new RegistrarPagamentoRequest(TipoPagamento.INTEGRAL,
+                        FormaPagamento.DEPOSITO, OrigemPagamento.EXTERNO_MANUAL));
+
+        assertThat(resposta.valor()).isEqualByComparingTo("250.00");
+        assertThat(resposta.saldoPendente()).isZero();
+        assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.PAGO_INTEGRALMENTE);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+    }
+
+    @Test
+    void deveConfirmarPagamentoPendenteEmVezDeCriarOutro() {
+        Encomenda encomenda = criarEncomenda();
+        Pagamento pendente = criarPagamento(encomenda, TipoPagamento.SINAL, "75.00");
+        pendente.setStatus(StatusPagamento.PENDENTE);
+        pendente.setOrigem(OrigemPagamento.EXTERNO_MANUAL);
+        Administrador administrador = criarAdministrador();
+        when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
+        when(pagamentoRepository.findFirstByEncomenda_IdAndStatusOrderByCriadoEmAsc(
+                1L, StatusPagamento.PENDENTE)).thenReturn(Optional.of(pendente));
+        when(pagamentoRepository.findById(10L)).thenReturn(Optional.of(pendente));
+        when(administradorRepository.findByUsuario_EmailIgnoreCase("admin@teste.local"))
+                .thenReturn(Optional.of(administrador));
+        when(pagamentoRepository.findByEncomenda_IdAndStatus(1L, StatusPagamento.CONFIRMADO))
+                .thenReturn(List.of());
+        when(pagamentoRepository.save(pendente)).thenReturn(pendente);
+
+        PagamentoResponse resposta = service.confirmarRecebimentoExterno(
+                1L, "admin@teste.local",
+                new RegistrarPagamentoRequest(TipoPagamento.SINAL,
+                        FormaPagamento.PIX, OrigemPagamento.EXTERNO_MANUAL));
+
+        assertThat(resposta.id()).isEqualTo(10L);
+        assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
     }
 
     @Test
@@ -238,7 +316,7 @@ class PagamentoServiceTests {
         encomenda.setCliente(cliente);
         encomenda.setValorTotal(new BigDecimal("250.00"));
         encomenda.setValorSinal(new BigDecimal("75.00"));
-        encomenda.setStatusEncomenda(StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL);
+        encomenda.setStatusEncomenda(StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL);
         encomenda.setStatusFinanceiro(StatusFinanceiro.AGUARDANDO_SINAL);
         encomenda.setTipoEntrega(TipoEntrega.RETIRADA);
         return encomenda;

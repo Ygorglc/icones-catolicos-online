@@ -120,7 +120,7 @@ class DadosDemonstracaoConfigTests {
         assertThat(captor.getAllValues())
                 .extracting(Encomenda::getStatusEncomenda)
                 .containsExactly(
-                        StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL,
+                        StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL,
                         StatusEncomenda.EM_PRODUCAO,
                         StatusEncomenda.EM_ACABAMENTO,
                         StatusEncomenda.CONCLUIDO);

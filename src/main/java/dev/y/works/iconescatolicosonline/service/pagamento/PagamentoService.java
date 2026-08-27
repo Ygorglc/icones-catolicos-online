@@ -108,6 +108,52 @@ public class PagamentoService {
     }
 
     @Transactional
+    public PagamentoResponse confirmarRecebimentoExterno(
+            Long encomendaId, String emailAdministrador, RegistrarPagamentoRequest request) {
+        if (request.origem() != OrigemPagamento.EXTERNO_MANUAL) {
+            throw new RegraNegocioException("A confirmação administrativa aceita somente pagamento externo.");
+        }
+        validarFormaEOrigem(request.forma(), request.origem());
+        Encomenda encomenda = encomendaRepository.findById(encomendaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Encomenda não encontrada."));
+        validarEncomendaRecebePagamento(encomenda);
+        var pagamentoPendente = pagamentoRepository
+                .findFirstByEncomenda_IdAndStatusOrderByCriadoEmAsc(
+                        encomendaId, StatusPagamento.PENDENTE);
+        if (pagamentoPendente.isPresent()) {
+            Pagamento existente = pagamentoPendente.get();
+            if (existente.getOrigem() != OrigemPagamento.EXTERNO_MANUAL) {
+                throw new RegraNegocioException("O pagamento pendente não pode ser confirmado manualmente.");
+            }
+            return analisar(existente.getId(), emailAdministrador,
+                    new AnalisePagamentoRequest(true,
+                            "Recebimento confirmado diretamente na encomenda."));
+        }
+        Administrador administrador = administradorRepository.findByUsuario_EmailIgnoreCase(emailAdministrador)
+                .orElseThrow(() -> new RegraNegocioException("Administrador não encontrado."));
+        BigDecimal totalPagoAntes = calcularTotalPago(encomendaId);
+        BigDecimal valor = calcularValor(request.tipo(), encomenda, totalPagoAntes,
+                encomenda.getValorTotal().subtract(totalPagoAntes));
+        Pagamento pagamento = new Pagamento();
+        pagamento.setEncomenda(encomenda);
+        pagamento.setTipo(request.tipo());
+        pagamento.setFormaPagamento(request.forma());
+        pagamento.setOrigem(OrigemPagamento.EXTERNO_MANUAL);
+        pagamento.setValor(valor);
+        pagamento.setStatus(StatusPagamento.CONFIRMADO);
+        pagamento.setDataPagamento(Instant.now());
+        pagamento.setReferenciaSimulada("ADM-" + UUID.randomUUID());
+        pagamento.setAnalisadoPor(administrador);
+        pagamento.setDataAnalise(Instant.now());
+        pagamento.setObservacaoAdministrativa("Recebimento confirmado diretamente pelo administrador.");
+        pagamento = pagamentoRepository.save(pagamento);
+        BigDecimal totalPago = totalPagoAntes.add(valor);
+        atualizarEncomendaAposPagamento(encomenda, totalPago);
+        encomendaRepository.save(encomenda);
+        return paraResponse(pagamento, totalPago);
+    }
+
+    @Transactional
     public PagamentoResponse analisar(
             Long pagamentoId,
             String emailAdministrador,
@@ -169,15 +215,16 @@ public class PagamentoService {
 
     private void validarFormaEOrigem(FormaPagamento forma, OrigemPagamento origem) {
         if (origem == OrigemPagamento.SIMULADO_SISTEMA
-                && forma == FormaPagamento.DINHEIRO) {
+                && (forma == FormaPagamento.DINHEIRO || forma == FormaPagamento.DEPOSITO)) {
             throw new RegraNegocioException(
-                    "Pagamento em dinheiro deve ser registrado como externo manual.");
+                    "Pagamento em dinheiro ou depósito deve ser registrado como externo manual.");
         }
         if (origem == OrigemPagamento.EXTERNO_MANUAL
                 && forma != FormaPagamento.PIX
-                && forma != FormaPagamento.DINHEIRO) {
+                && forma != FormaPagamento.DINHEIRO
+                && forma != FormaPagamento.DEPOSITO) {
             throw new RegraNegocioException(
-                    "Pagamento externo manual aceita somente PIX ou dinheiro.");
+                    "Pagamento externo manual aceita somente PIX, dinheiro ou depósito.");
         }
     }
 
@@ -223,9 +270,9 @@ public class PagamentoService {
             encomenda.setStatusFinanceiro(StatusFinanceiro.PAGAMENTO_PARCIAL);
         }
 
-        if (encomenda.getStatusEncomenda() == StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL
+        if (encomenda.getStatusEncomenda() == StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL
                 && totalPago.compareTo(encomenda.getValorSinal()) >= 0) {
-            encomenda.setStatusEncomenda(StatusEncomenda.PRODUCAO_LIBERADA);
+            encomenda.setStatusEncomenda(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
         }
     }
 

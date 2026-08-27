@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import dev.y.works.iconescatolicosonline.dto.pagamento.RegistrarPagamentoRequest;
 
 import java.util.List;
 
@@ -47,5 +49,14 @@ public class PagamentoAdminController {
             @Valid @RequestBody AnalisePagamentoRequest request) {
         return ResponseEntity.ok(pagamentoService.analisar(
                 pagamentoId, authentication.getName(), request));
+    }
+
+    @PostMapping("/encomendas/{encomendaId}/pagamentos/confirmacao-externa")
+    public ResponseEntity<PagamentoResponse> confirmarRecebimentoExterno(
+            @PathVariable Long encomendaId,
+            Authentication authentication,
+            @Valid @RequestBody RegistrarPagamentoRequest request) {
+        return ResponseEntity.ok(pagamentoService.confirmarRecebimentoExterno(
+                encomendaId, authentication.getName(), request));
     }
 }

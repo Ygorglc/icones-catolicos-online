@@ -1,0 +1,19 @@
+ALTER TABLE encomenda DROP CONSTRAINT IF EXISTS encomenda_status_encomenda_check;
+
+UPDATE encomenda
+SET status_encomenda = 'AGUARDANDO_PAGAMENTO_INICIAL'
+WHERE status_encomenda = 'AGUARDANDO_PAGAMENTO_SINAL';
+
+UPDATE encomenda
+SET status_encomenda = 'PAGAMENTO_INICIAL_CONFIRMADO'
+WHERE status_encomenda = 'SINAL_PAGO';
+
+ALTER TABLE encomenda ADD CONSTRAINT encomenda_status_encomenda_check CHECK (
+    status_encomenda IN (
+        'ENCOMENDA_CRIADA', 'AGUARDANDO_PAGAMENTO_INICIAL',
+        'PAGAMENTO_INICIAL_CONFIRMADO', 'PRODUCAO_LIBERADA', 'EM_PRODUCAO',
+        'EM_ACABAMENTO', 'PRONTO_PARA_ENTREGA_RETIRADA',
+        'AGUARDANDO_PAGAMENTO_RESTANTE', 'ENVIADO_OU_RETIRADO',
+        'CONCLUIDO', 'CANCELADO'
+    )
+);

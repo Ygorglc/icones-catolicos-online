@@ -142,7 +142,7 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
         criarIconeDisponivel(saoBento);
 
         Encomenda aguardandoSinal = criarEncomenda(cliente, nossaSenhora,
-                StatusEncomenda.AGUARDANDO_PAGAMENTO_SINAL,
+                StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL,
                 StatusFinanceiro.AGUARDANDO_SINAL, "280.00", "84.00",
                 TamanhoIcone.PEQUENO, "Cera natural", 2);
         criarPagamentoPendente(aguardandoSinal, "84.00");
@@ -164,7 +164,7 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
         Encomenda concluida = criarEncomenda(cliente, sagradaFamilia,
                 StatusEncomenda.CONCLUIDO, StatusFinanceiro.PAGO_INTEGRALMENTE,
                 "520.00", "156.00", TamanhoIcone.GRANDE, "Envernizado", 45);
-        criarPagamento(concluida, TipoPagamento.INTEGRAL, FormaPagamento.CARTAO_CREDITO,
+        criarPagamento(concluida, TipoPagamento.INTEGRAL, FormaPagamento.DEPOSITO,
                 OrigemPagamento.SIMULADO_SISTEMA, "520.00", administrador, 44);
         criarIconeVendido(sagradaFamilia, concluida);
         criarGasto(concluida, "Madeira, tintas e acabamento da encomenda",
@@ -292,7 +292,7 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
         Pagamento pagamento = new Pagamento();
         pagamento.setEncomenda(encomenda);
         pagamento.setTipo(TipoPagamento.SINAL);
-        pagamento.setFormaPagamento(FormaPagamento.CARTAO_DEBITO);
+        pagamento.setFormaPagamento(FormaPagamento.DEPOSITO);
         pagamento.setOrigem(OrigemPagamento.SIMULADO_SISTEMA);
         pagamento.setValor(new BigDecimal(valor));
         pagamento.setStatus(StatusPagamento.PENDENTE);
