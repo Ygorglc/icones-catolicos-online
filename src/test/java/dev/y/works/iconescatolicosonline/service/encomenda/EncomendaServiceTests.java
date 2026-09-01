@@ -17,6 +17,7 @@ import dev.y.works.iconescatolicosonline.repository.catalogo.ModeloIconeReposito
 import dev.y.works.iconescatolicosonline.repository.configuracao.ConfiguracaoLojaRepository;
 import dev.y.works.iconescatolicosonline.repository.encomenda.EncomendaRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.ClienteRepository;
+import dev.y.works.iconescatolicosonline.service.financeiro.FinanceiroService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class EncomendaServiceTests {
@@ -39,13 +41,15 @@ class EncomendaServiceTests {
     @Mock ClienteRepository clienteRepository;
     @Mock ModeloIconeRepository modeloIconeRepository;
     @Mock ConfiguracaoLojaRepository configuracaoLojaRepository;
+    @Mock FinanceiroService financeiroService;
 
     private EncomendaService service;
 
     @BeforeEach
     void configurar() {
         service = new EncomendaService(
-                encomendaRepository, clienteRepository, modeloIconeRepository, configuracaoLojaRepository,
+                encomendaRepository, clienteRepository, modeloIconeRepository,
+                configuracaoLojaRepository, financeiroService,
                 new BigDecimal("30"));
     }
 
@@ -132,6 +136,20 @@ class EncomendaServiceTests {
                 1L, StatusEncomenda.ENTREGUE_E_CONCLUIDO))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("A encomenda só pode ser concluída após o pagamento integral.");
+    }
+
+    @Test
+    void deveRegistrarVendaAutomaticamenteAoConcluirEncomenda() {
+        Encomenda encomenda = criarEncomenda(StatusEncomenda.ENVIADO_OU_RETIRADO);
+        encomenda.setStatusFinanceiro(StatusFinanceiro.PAGO_INTEGRALMENTE);
+        when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
+        when(encomendaRepository.save(encomenda)).thenReturn(encomenda);
+
+        service.atualizarStatus(1L, StatusEncomenda.ENTREGUE_E_CONCLUIDO);
+
+        verify(financeiroService).registrarVendaSeAusente(1L);
+        assertThat(encomenda.getStatusEncomenda())
+                .isEqualTo(StatusEncomenda.ENTREGUE_E_CONCLUIDO);
     }
 
     private Cliente criarCliente() {

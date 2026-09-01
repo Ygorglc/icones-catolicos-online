@@ -115,6 +115,13 @@ public class FinanceiroService {
         return mapearVenda(vendaRepository.save(venda));
     }
 
+    @Transactional
+    public VendaResponse registrarVendaSeAusente(Long encomendaId) {
+        return vendaRepository.findByEncomenda_Id(encomendaId)
+                .map(this::mapearVenda)
+                .orElseGet(() -> registrarVenda(encomendaId));
+    }
+
     @Transactional(readOnly = true)
     public RelatorioFinanceiroResponse gerarRelatorio(LocalDate inicio, LocalDate fim) {
         validarPeriodo(inicio, fim);

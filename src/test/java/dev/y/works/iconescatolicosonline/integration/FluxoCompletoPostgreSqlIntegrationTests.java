@@ -8,6 +8,7 @@ import dev.y.works.iconescatolicosonline.domain.usuario.Usuario;
 import dev.y.works.iconescatolicosonline.repository.catalogo.ModeloIconeRepository;
 import dev.y.works.iconescatolicosonline.repository.encomenda.EncomendaRepository;
 import dev.y.works.iconescatolicosonline.repository.financeiro.CertificadoArtesanalRepository;
+import dev.y.works.iconescatolicosonline.repository.financeiro.VendaRepository;
 import dev.y.works.iconescatolicosonline.repository.pagamento.PagamentoRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.AdministradorRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.ClienteRepository;
@@ -71,6 +72,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
     @Autowired EncomendaRepository encomendaRepository;
     @Autowired PagamentoRepository pagamentoRepository;
     @Autowired CertificadoArtesanalRepository certificadoRepository;
+    @Autowired VendaRepository vendaRepository;
     @Autowired PasswordEncoder passwordEncoder;
     private Long modeloId;
 
@@ -216,6 +218,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
         assertThat(pagamentoRepository.findByEncomenda_IdOrderByCriadoEmAsc(encomendaId))
                 .hasSize(2);
         assertThat(certificadoRepository.findByCodigoPublico(codigoPublico)).isPresent();
+        assertThat(vendaRepository.findByEncomenda_Id(encomendaId)).isPresent();
     }
 
     private String cadastrarCliente(String email) throws Exception {

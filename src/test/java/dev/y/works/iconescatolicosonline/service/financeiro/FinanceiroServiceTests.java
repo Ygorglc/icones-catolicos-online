@@ -109,6 +109,25 @@ class FinanceiroServiceTests {
     }
 
     @Test
+    void deveReutilizarVendaExistenteNoRegistroAutomatico() {
+        Encomenda encomenda = criarEncomenda(StatusFinanceiro.PAGO_INTEGRALMENTE);
+        Venda venda = new Venda();
+        venda.setId(20L);
+        venda.setEncomenda(encomenda);
+        venda.setValorTotal(new BigDecimal("300.00"));
+        venda.setLucroBruto(new BigDecimal("300.00"));
+        venda.setLucroLiquidoEstimado(new BigDecimal("300.00"));
+        venda.setDataVenda(Instant.parse("2026-08-20T12:00:00Z"));
+        when(vendaRepository.findByEncomenda_Id(1L)).thenReturn(Optional.of(venda));
+        when(gastoRepository.findByEncomenda_IdOrderByDataGastoAsc(1L))
+                .thenReturn(List.of());
+
+        VendaResponse resposta = service.registrarVendaSeAusente(1L);
+
+        assertThat(resposta.id()).isEqualTo(20L);
+    }
+
+    @Test
     void deveGerarRelatorioPorPeriodo() {
         Encomenda encomenda = criarEncomenda(StatusFinanceiro.PAGO_INTEGRALMENTE);
         Venda venda = new Venda();

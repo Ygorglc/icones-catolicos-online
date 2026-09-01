@@ -20,6 +20,7 @@ import dev.y.works.iconescatolicosonline.repository.catalogo.ModeloIconeReposito
 import dev.y.works.iconescatolicosonline.repository.configuracao.ConfiguracaoLojaRepository;
 import dev.y.works.iconescatolicosonline.repository.encomenda.EncomendaRepository;
 import dev.y.works.iconescatolicosonline.repository.usuario.ClienteRepository;
+import dev.y.works.iconescatolicosonline.service.financeiro.FinanceiroService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,7 @@ public class EncomendaService {
     private final ClienteRepository clienteRepository;
     private final ModeloIconeRepository modeloIconeRepository;
     private final ConfiguracaoLojaRepository configuracaoLojaRepository;
+    private final FinanceiroService financeiroService;
     private final BigDecimal percentualSinal;
 
     public EncomendaService(
@@ -53,11 +55,13 @@ public class EncomendaService {
             ClienteRepository clienteRepository,
             ModeloIconeRepository modeloIconeRepository,
             ConfiguracaoLojaRepository configuracaoLojaRepository,
+            FinanceiroService financeiroService,
             @Value("${app.encomenda.percentual-sinal-minimo}") BigDecimal percentualSinal) {
         this.encomendaRepository = encomendaRepository;
         this.clienteRepository = clienteRepository;
         this.modeloIconeRepository = modeloIconeRepository;
         this.configuracaoLojaRepository = configuracaoLojaRepository;
+        this.financeiroService = financeiroService;
         if (percentualSinal.signum() <= 0 || percentualSinal.compareTo(new BigDecimal("100")) > 0) {
             throw new IllegalArgumentException("O percentual do sinal deve estar entre 0 e 100.");
         }
@@ -156,7 +160,11 @@ public class EncomendaService {
             encomenda.setStatusEncomenda(novoStatus);
         }
 
-        return paraResponse(encomendaRepository.save(encomenda));
+        Encomenda encomendaSalva = encomendaRepository.save(encomenda);
+        if (novoStatus == StatusEncomenda.ENTREGUE_E_CONCLUIDO) {
+            financeiroService.registrarVendaSeAusente(encomendaSalva.getId());
+        }
+        return paraResponse(encomendaSalva);
     }
 
     private Cliente buscarCliente(String email) {
