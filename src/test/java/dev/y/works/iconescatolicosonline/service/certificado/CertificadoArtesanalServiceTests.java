@@ -141,7 +141,7 @@ class CertificadoArtesanalServiceTests {
 
         Encomenda encomenda = new Encomenda();
         encomenda.setId(1L);
-        encomenda.setStatusEncomenda(StatusEncomenda.CONCLUIDO);
+        encomenda.setStatusEncomenda(StatusEncomenda.ENTREGUE_E_CONCLUIDO);
         encomenda.setStatusFinanceiro(StatusFinanceiro.PAGO_INTEGRALMENTE);
         encomenda.setIconePronto(icone);
         return encomenda;

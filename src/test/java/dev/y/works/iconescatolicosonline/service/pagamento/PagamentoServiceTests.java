@@ -42,17 +42,19 @@ class PagamentoServiceTests {
     @Mock PagamentoRepository pagamentoRepository;
     @Mock EncomendaRepository encomendaRepository;
     @Mock AdministradorRepository administradorRepository;
+    @Mock ArmazenamentoComprovanteService armazenamentoComprovanteService;
 
     private PagamentoService service;
 
     @BeforeEach
     void configurar() {
         service = new PagamentoService(
-                pagamentoRepository, encomendaRepository, administradorRepository);
+                pagamentoRepository, encomendaRepository, administradorRepository,
+                armazenamentoComprovanteService);
     }
 
     @Test
-    void deveConfirmarSinalEAguardarLiberacaoDaProducao() {
+    void deveConfirmarSinalEIniciarProducao() {
         Encomenda encomenda = criarEncomenda();
         prepararPagamento(encomenda, List.of());
 
@@ -65,7 +67,7 @@ class PagamentoServiceTests {
         assertThat(resposta.saldoPendente()).isEqualByComparingTo("175.00");
         assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.SINAL_PAGO);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.EM_PRODUCAO);
     }
 
     @Test
@@ -81,7 +83,7 @@ class PagamentoServiceTests {
         assertThat(resposta.saldoPendente()).isZero();
         assertThat(encomenda.getStatusFinanceiro())
                 .isEqualTo(StatusFinanceiro.PAGO_INTEGRALMENTE);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.EM_PRODUCAO);
     }
 
     @Test
@@ -137,7 +139,7 @@ class PagamentoServiceTests {
     }
 
     @Test
-    void deveManterPagamentoExternoPendenteSemLiberarProducao() {
+    void deveManterPagamentoExternoPendenteSemIniciarProducao() {
         Encomenda encomenda = criarEncomenda();
         when(encomendaRepository.findByIdAndCliente_Usuario_EmailIgnoreCase(
                 1L, "cliente@teste.local")).thenReturn(Optional.of(encomenda));
@@ -185,7 +187,7 @@ class PagamentoServiceTests {
         assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
         assertThat(resposta.analisadoPor()).isEqualTo("Administrador");
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.SINAL_PAGO);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.EM_PRODUCAO);
     }
 
     @Test
@@ -210,7 +212,7 @@ class PagamentoServiceTests {
 
         assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.SINAL_PAGO);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.EM_PRODUCAO);
     }
 
     @Test
@@ -236,7 +238,7 @@ class PagamentoServiceTests {
         assertThat(resposta.valor()).isEqualByComparingTo("250.00");
         assertThat(resposta.saldoPendente()).isZero();
         assertThat(encomenda.getStatusFinanceiro()).isEqualTo(StatusFinanceiro.PAGO_INTEGRALMENTE);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.EM_PRODUCAO);
     }
 
     @Test
@@ -263,7 +265,7 @@ class PagamentoServiceTests {
 
         assertThat(resposta.id()).isEqualTo(10L);
         assertThat(resposta.status()).isEqualTo(StatusPagamento.CONFIRMADO);
-        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        assertThat(encomenda.getStatusEncomenda()).isEqualTo(StatusEncomenda.EM_PRODUCAO);
     }
 
     @Test

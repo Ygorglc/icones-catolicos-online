@@ -39,3 +39,4 @@ out/
 
 ### Ambiente local ###
 .env
+/uploads/

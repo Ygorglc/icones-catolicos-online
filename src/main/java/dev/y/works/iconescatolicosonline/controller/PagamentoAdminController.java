@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import dev.y.works.iconescatolicosonline.dto.pagamento.RegistrarPagamentoRequest;
 
 import java.util.List;
+import java.nio.charset.StandardCharsets;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -40,6 +45,16 @@ public class PagamentoAdminController {
     @GetMapping("/pagamentos/pendentes")
     public ResponseEntity<List<PagamentoResponse>> listarPendentes() {
         return ResponseEntity.ok(pagamentoService.listarPendentes());
+    }
+
+    @GetMapping("/pagamentos/{pagamentoId}/comprovante")
+    public ResponseEntity<Resource> baixarComprovante(@PathVariable Long pagamentoId) {
+        var comprovante = pagamentoService.buscarComprovanteParaAdministrador(pagamentoId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(comprovante.tipoConteudo()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(comprovante.nomeOriginal(), StandardCharsets.UTF_8).build().toString())
+                .body(comprovante.recurso());
     }
 
     @PatchMapping("/pagamentos/{pagamentoId}/analise")

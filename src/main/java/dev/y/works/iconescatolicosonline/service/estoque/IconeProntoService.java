@@ -158,7 +158,7 @@ public class IconeProntoService {
 
     private void validarEncomendaParaReserva(Encomenda encomenda) {
         if (encomenda.getStatusEncomenda() == StatusEncomenda.CANCELADO
-                || encomenda.getStatusEncomenda() == StatusEncomenda.CONCLUIDO
+                || encomenda.getStatusEncomenda() == StatusEncomenda.ENTREGUE_E_CONCLUIDO
                 || encomenda.getStatusEncomenda() == StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL) {
             throw new RegraNegocioException(
                     "A encomenda não está em uma etapa que permita reservar uma peça pronta.");

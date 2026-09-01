@@ -154,7 +154,7 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
                 OrigemPagamento.SIMULADO_SISTEMA, "126.00", administrador, 11);
 
         Encomenda acabamento = criarEncomenda(cliente, saoBento,
-                StatusEncomenda.EM_ACABAMENTO, StatusFinanceiro.PAGAMENTO_PARCIAL,
+                StatusEncomenda.EM_PRODUCAO, StatusFinanceiro.PAGAMENTO_PARCIAL,
                 "390.00", "117.00", TamanhoIcone.PERSONALIZADO, "Pátina", 24);
         criarPagamento(acabamento, TipoPagamento.SINAL, FormaPagamento.DINHEIRO,
                 OrigemPagamento.EXTERNO_MANUAL, "150.00", administrador, 23);
@@ -162,7 +162,7 @@ public class DadosDemonstracaoConfig implements ApplicationRunner {
                 "85.00", "MATÉRIA-PRIMA", 22);
 
         Encomenda concluida = criarEncomenda(cliente, sagradaFamilia,
-                StatusEncomenda.CONCLUIDO, StatusFinanceiro.PAGO_INTEGRALMENTE,
+                StatusEncomenda.ENTREGUE_E_CONCLUIDO, StatusFinanceiro.PAGO_INTEGRALMENTE,
                 "520.00", "156.00", TamanhoIcone.GRANDE, "Envernizado", 45);
         criarPagamento(concluida, TipoPagamento.INTEGRAL, FormaPagamento.DEPOSITO,
                 OrigemPagamento.SIMULADO_SISTEMA, "520.00", administrador, 44);

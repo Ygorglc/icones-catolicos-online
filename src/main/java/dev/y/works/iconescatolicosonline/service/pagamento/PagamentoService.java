@@ -20,6 +20,8 @@ import dev.y.works.iconescatolicosonline.repository.pagamento.PagamentoRepositor
 import dev.y.works.iconescatolicosonline.repository.usuario.AdministradorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,14 +34,75 @@ public class PagamentoService {
     private final PagamentoRepository pagamentoRepository;
     private final EncomendaRepository encomendaRepository;
     private final AdministradorRepository administradorRepository;
+    private final ArmazenamentoComprovanteService armazenamentoComprovanteService;
 
     public PagamentoService(
             PagamentoRepository pagamentoRepository,
             EncomendaRepository encomendaRepository,
-            AdministradorRepository administradorRepository) {
+            AdministradorRepository administradorRepository,
+            ArmazenamentoComprovanteService armazenamentoComprovanteService) {
         this.pagamentoRepository = pagamentoRepository;
         this.encomendaRepository = encomendaRepository;
         this.administradorRepository = administradorRepository;
+        this.armazenamentoComprovanteService = armazenamentoComprovanteService;
+    }
+
+    @Transactional
+    public PagamentoResponse anexarComprovante(
+            Long encomendaId, Long pagamentoId, String emailCliente, MultipartFile arquivo) {
+        Pagamento pagamento = buscarPagamentoDoCliente(encomendaId, pagamentoId, emailCliente);
+        if (pagamento.getFormaPagamento() != FormaPagamento.PIX
+                && pagamento.getFormaPagamento() != FormaPagamento.DEPOSITO) {
+            throw new RegraNegocioException(
+                    "Comprovantes podem ser anexados somente a pagamentos por PIX ou depósito.");
+        }
+        if (pagamento.getComprovanteArquivo() != null) {
+            throw new RegraNegocioException("Este pagamento já possui comprovante.");
+        }
+        var comprovante = armazenamentoComprovanteService.armazenar(arquivo);
+        pagamento.setComprovanteArquivo(comprovante.nomeArmazenado());
+        pagamento.setComprovanteNomeOriginal(comprovante.nomeOriginal());
+        pagamento.setComprovanteTipoConteudo(comprovante.tipoConteudo());
+        pagamentoRepository.save(pagamento);
+        return paraResponse(pagamento, calcularTotalPago(encomendaId));
+    }
+
+    @Transactional(readOnly = true)
+    public ComprovanteDownload buscarComprovanteParaAdministrador(Long pagamentoId) {
+        Pagamento pagamento = pagamentoRepository.findById(pagamentoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento não encontrado."));
+        if (pagamento.getComprovanteArquivo() == null) {
+            throw new RecursoNaoEncontradoException("Este pagamento não possui comprovante.");
+        }
+        return new ComprovanteDownload(
+                armazenamentoComprovanteService.carregar(pagamento.getComprovanteArquivo()),
+                pagamento.getComprovanteNomeOriginal(), pagamento.getComprovanteTipoConteudo());
+    }
+
+    @Transactional(readOnly = true)
+    public ComprovanteDownload buscarComprovanteDoCliente(
+            Long encomendaId, Long pagamentoId, String emailCliente) {
+        Pagamento pagamento = buscarPagamentoDoCliente(encomendaId, pagamentoId, emailCliente);
+        if (pagamento.getComprovanteArquivo() == null) {
+            throw new RecursoNaoEncontradoException("Este pagamento não possui comprovante.");
+        }
+        return new ComprovanteDownload(
+                armazenamentoComprovanteService.carregar(pagamento.getComprovanteArquivo()),
+                pagamento.getComprovanteNomeOriginal(), pagamento.getComprovanteTipoConteudo());
+    }
+
+    public record ComprovanteDownload(Resource recurso, String nomeOriginal, String tipoConteudo) {}
+
+    private Pagamento buscarPagamentoDoCliente(
+            Long encomendaId, Long pagamentoId, String emailCliente) {
+        Pagamento pagamento = pagamentoRepository.findById(pagamentoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento não encontrado."));
+        if (!pagamento.getEncomenda().getId().equals(encomendaId)
+                || !pagamento.getEncomenda().getCliente().getUsuario().getEmail()
+                .equalsIgnoreCase(emailCliente)) {
+            throw new RecursoNaoEncontradoException("Pagamento não encontrado.");
+        }
+        return pagamento;
     }
 
     @Transactional
@@ -204,7 +267,7 @@ public class PagamentoService {
 
     private void validarEncomendaRecebePagamento(Encomenda encomenda) {
         if (encomenda.getStatusEncomenda() == StatusEncomenda.CANCELADO
-                || encomenda.getStatusEncomenda() == StatusEncomenda.CONCLUIDO) {
+                || encomenda.getStatusEncomenda() == StatusEncomenda.ENTREGUE_E_CONCLUIDO) {
             throw new RegraNegocioException(
                     "Não é possível pagar uma encomenda cancelada ou concluída.");
         }
@@ -272,7 +335,7 @@ public class PagamentoService {
 
         if (encomenda.getStatusEncomenda() == StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL
                 && totalPago.compareTo(encomenda.getValorSinal()) >= 0) {
-            encomenda.setStatusEncomenda(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+            encomenda.setStatusEncomenda(StatusEncomenda.EM_PRODUCAO);
         }
     }
 
@@ -320,6 +383,8 @@ public class PagamentoService {
                         : pagamento.getAnalisadoPor().getUsuario().getNome(),
                 pagamento.getDataAnalise(),
                 pagamento.getObservacaoAdministrativa(),
+                pagamento.getComprovanteArquivo() != null,
+                pagamento.getComprovanteNomeOriginal(),
                 totalPago,
                 saldo(encomenda, totalPago),
                 encomenda.getStatusFinanceiro(),

@@ -129,7 +129,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                 .andReturn();
         Long encomendaId = numero(criacao, "$.id");
 
-        atualizarStatus(encomendaId, "CONCLUIDO", tokenAdmin, 422);
+        atualizarStatus(encomendaId, "ENTREGUE_E_CONCLUIDO", tokenAdmin, 422);
 
         mockMvc.perform(post("/api/admin/estoque/icones-prontos")
                         .header("Authorization", bearer(tokenAdmin))
@@ -158,9 +158,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("CONFIRMADO"))
-                .andExpect(jsonPath("$.statusEncomenda").value("PAGAMENTO_INICIAL_CONFIRMADO"));
-
-        atualizarStatus(encomendaId, "PRODUCAO_LIBERADA", tokenAdmin, 200);
+                .andExpect(jsonPath("$.statusEncomenda").value("EM_PRODUCAO"));
 
         mockMvc.perform(post("/api/admin/estoque/icones-prontos/reservas")
                         .header("Authorization", bearer(tokenAdmin))
@@ -169,9 +167,6 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("RESERVADO"));
 
-        atualizarStatus(encomendaId, "EM_PRODUCAO", tokenAdmin, 200);
-        atualizarStatus(encomendaId, "EM_ACABAMENTO", tokenAdmin, 200);
-        atualizarStatus(encomendaId, "PRONTO_PARA_ENTREGA_RETIRADA", tokenAdmin, 200);
         atualizarStatus(encomendaId, "AGUARDANDO_PAGAMENTO_RESTANTE", tokenAdmin, 200);
 
         mockMvc.perform(post("/api/encomendas/{id}/pagamentos", encomendaId)
@@ -189,7 +184,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
                 .andExpect(jsonPath("$.statusFinanceiro").value("PAGO_INTEGRALMENTE"));
 
         atualizarStatus(encomendaId, "ENVIADO_OU_RETIRADO", tokenAdmin, 200);
-        atualizarStatus(encomendaId, "CONCLUIDO", tokenAdmin, 200);
+        atualizarStatus(encomendaId, "ENTREGUE_E_CONCLUIDO", tokenAdmin, 200);
 
         MvcResult emissao = mockMvc.perform(post(
                                 "/api/admin/certificados/encomendas/{id}", encomendaId)
@@ -217,7 +212,7 @@ class FluxoCompletoPostgreSqlIntegrationTests {
         assertThat(clienteRepository.findByUsuario_EmailIgnoreCase(emailCliente)).isPresent();
         assertThat(encomendaRepository.findById(encomendaId))
                 .get().extracting(encomenda -> encomenda.getStatusEncomenda().name())
-                .isEqualTo("CONCLUIDO");
+                .isEqualTo("ENTREGUE_E_CONCLUIDO");
         assertThat(pagamentoRepository.findByEncomenda_IdOrderByCriadoEmAsc(encomendaId))
                 .hasSize(2);
         assertThat(certificadoRepository.findByCodigoPublico(codigoPublico)).isPresent();

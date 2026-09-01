@@ -102,14 +102,15 @@ class EncomendaServiceTests {
 
     @Test
     void deveAtualizarStatusQuandoTransicaoForPermitida() {
-        Encomenda encomenda = criarEncomenda(StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO);
+        Encomenda encomenda = criarEncomenda(StatusEncomenda.EM_PRODUCAO);
         when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
         when(encomendaRepository.save(encomenda)).thenReturn(encomenda);
 
         EncomendaResponse resposta = service.atualizarStatus(
-                1L, StatusEncomenda.PRODUCAO_LIBERADA);
+                1L, StatusEncomenda.AGUARDANDO_PAGAMENTO_RESTANTE);
 
-        assertThat(resposta.statusEncomenda()).isEqualTo(StatusEncomenda.PRODUCAO_LIBERADA);
+        assertThat(resposta.statusEncomenda())
+                .isEqualTo(StatusEncomenda.AGUARDANDO_PAGAMENTO_RESTANTE);
     }
 
     @Test
@@ -127,7 +128,8 @@ class EncomendaServiceTests {
         Encomenda encomenda = criarEncomenda(StatusEncomenda.ENVIADO_OU_RETIRADO);
         when(encomendaRepository.findById(1L)).thenReturn(Optional.of(encomenda));
 
-        assertThatThrownBy(() -> service.atualizarStatus(1L, StatusEncomenda.CONCLUIDO))
+        assertThatThrownBy(() -> service.atualizarStatus(
+                1L, StatusEncomenda.ENTREGUE_E_CONCLUIDO))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("A encomenda só pode ser concluída após o pagamento integral.");
     }

@@ -136,7 +136,7 @@ class IconeProntoServiceTests {
     private Encomenda criarEncomenda(ModeloIcone modelo) {
         Encomenda encomenda = new Encomenda();
         encomenda.setId(1L);
-        encomenda.setStatusEncomenda(StatusEncomenda.PRODUCAO_LIBERADA);
+        encomenda.setStatusEncomenda(StatusEncomenda.EM_PRODUCAO);
         ItemEncomenda item = new ItemEncomenda();
         item.setModeloIcone(modelo);
         item.setEncomenda(encomenda);

@@ -34,15 +34,12 @@ import java.util.Set;
 public class EncomendaService {
 
     private static final Map<StatusEncomenda, Set<StatusEncomenda>> TRANSICOES = Map.of(
-            StatusEncomenda.PAGAMENTO_INICIAL_CONFIRMADO, Set.of(StatusEncomenda.PRODUCAO_LIBERADA),
-            StatusEncomenda.PRODUCAO_LIBERADA, Set.of(StatusEncomenda.EM_PRODUCAO),
-            StatusEncomenda.EM_PRODUCAO, Set.of(StatusEncomenda.EM_ACABAMENTO),
-            StatusEncomenda.EM_ACABAMENTO, Set.of(StatusEncomenda.PRONTO_PARA_ENTREGA_RETIRADA),
-            StatusEncomenda.PRONTO_PARA_ENTREGA_RETIRADA,
-            Set.of(StatusEncomenda.AGUARDANDO_PAGAMENTO_RESTANTE),
+            StatusEncomenda.EM_PRODUCAO, Set.of(
+                    StatusEncomenda.AGUARDANDO_PAGAMENTO_RESTANTE,
+                    StatusEncomenda.ENVIADO_OU_RETIRADO),
             StatusEncomenda.AGUARDANDO_PAGAMENTO_RESTANTE,
             Set.of(StatusEncomenda.ENVIADO_OU_RETIRADO),
-            StatusEncomenda.ENVIADO_OU_RETIRADO, Set.of(StatusEncomenda.CONCLUIDO)
+            StatusEncomenda.ENVIADO_OU_RETIRADO, Set.of(StatusEncomenda.ENTREGUE_E_CONCLUIDO)
     );
 
     private final EncomendaRepository encomendaRepository;
@@ -135,14 +132,20 @@ public class EncomendaService {
         Encomenda encomenda = buscarEntidade(id);
         StatusEncomenda atual = encomenda.getStatusEncomenda();
 
-        if (novoStatus == StatusEncomenda.CONCLUIDO
+        if (novoStatus == StatusEncomenda.ENTREGUE_E_CONCLUIDO
                 && encomenda.getStatusFinanceiro() != StatusFinanceiro.PAGO_INTEGRALMENTE) {
             throw new RegraNegocioException(
                     "A encomenda só pode ser concluída após o pagamento integral.");
         }
 
+        if (novoStatus == StatusEncomenda.ENVIADO_OU_RETIRADO
+                && encomenda.getStatusFinanceiro() != StatusFinanceiro.PAGO_INTEGRALMENTE) {
+            throw new RegraNegocioException(
+                    "A encomenda só pode ser marcada como enviada ou aguardando retirada após o pagamento integral.");
+        }
+
         if (novoStatus == StatusEncomenda.CANCELADO) {
-            if (atual == StatusEncomenda.CONCLUIDO || atual == StatusEncomenda.CANCELADO) {
+            if (atual == StatusEncomenda.ENTREGUE_E_CONCLUIDO || atual == StatusEncomenda.CANCELADO) {
                 throw transicaoInvalida(atual, novoStatus);
             }
             encomenda.setStatusEncomenda(StatusEncomenda.CANCELADO);

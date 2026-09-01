@@ -92,7 +92,7 @@ public class CertificadoArtesanalService {
     }
 
     private void validarEmissao(Encomenda encomenda) {
-        if (encomenda.getStatusEncomenda() != StatusEncomenda.CONCLUIDO) {
+        if (encomenda.getStatusEncomenda() != StatusEncomenda.ENTREGUE_E_CONCLUIDO) {
             throw new RegraNegocioException(
                     "O certificado só pode ser gerado após a conclusão da encomenda.");
         }

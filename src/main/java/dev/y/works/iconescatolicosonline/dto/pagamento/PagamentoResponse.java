@@ -23,6 +23,8 @@ public record PagamentoResponse(
         String analisadoPor,
         Instant dataAnalise,
         String observacaoAdministrativa,
+        boolean possuiComprovante,
+        String comprovanteNomeOriginal,
         BigDecimal totalPago,
         BigDecimal saldoPendente,
         StatusFinanceiro statusFinanceiro,

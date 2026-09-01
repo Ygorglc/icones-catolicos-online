@@ -81,6 +81,15 @@ public class Pagamento {
     @Column(name = "observacao_administrativa", columnDefinition = "TEXT")
     private String observacaoAdministrativa;
 
+    @Column(name = "comprovante_arquivo", length = 100)
+    private String comprovanteArquivo;
+
+    @Column(name = "comprovante_nome_original", length = 255)
+    private String comprovanteNomeOriginal;
+
+    @Column(name = "comprovante_tipo_conteudo", length = 100)
+    private String comprovanteTipoConteudo;
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private Instant criadoEm = Instant.now();
 }

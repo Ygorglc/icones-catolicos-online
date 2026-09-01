@@ -122,7 +122,7 @@ class DadosDemonstracaoConfigTests {
                 .containsExactly(
                         StatusEncomenda.AGUARDANDO_PAGAMENTO_INICIAL,
                         StatusEncomenda.EM_PRODUCAO,
-                        StatusEncomenda.EM_ACABAMENTO,
-                        StatusEncomenda.CONCLUIDO);
+                        StatusEncomenda.EM_PRODUCAO,
+                        StatusEncomenda.ENTREGUE_E_CONCLUIDO);
     }
 }
